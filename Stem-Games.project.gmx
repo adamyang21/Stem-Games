@@ -10,7 +10,7 @@
     <sprite>sprites\spr_wall</sprite>
     <sprite>sprites\spr_runLeft</sprite>
     <sprite>sprites\spr_runRight</sprite>
-    <sprite>sprites\spr_json</sprite>
+    <sprite>sprites\spr_tempWall</sprite>
   </sprites>
   <backgrounds name="background">
     <background>background\bcg_tiles</background>

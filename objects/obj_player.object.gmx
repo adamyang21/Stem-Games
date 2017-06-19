@@ -25,13 +25,14 @@
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>grav = 20;
+            <string>grav = 100;
 hsp = 0;
 vsp = 0;
 
-maxVspeed = 3000;
+maxVspeed = 20;
 
-jumpspeed = 270;
+//gotta fix jump speed
+jumpspeed = 2;
 movespeed = 200;
 
 dash = 0;
@@ -143,7 +144,8 @@ show_debug_message("It's off");
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>key_right = keyboard_check(vk_right);
+            <string>//Move keys into creation code when fully finished
+key_right = keyboard_check(vk_right);
 key_left = keyboard_check(vk_left);
 
 key_rightPressed = keyboard_check_pressed(vk_right);
@@ -151,30 +153,32 @@ key_leftPressed = keyboard_check_pressed(vk_left);
 
 key_jump = keyboard_check_pressed(vk_space);
 //delta_time * (60/1000000)
+
 var seconds_passed = delta_time/1000000
+var move = key_right - key_left;
+var moving = key_rightPressed - key_leftPressed;
 //if not in a dash then move normally
 if(!dashing)
 {
-    var move = key_right - key_left;
     hsp = move * movespeed * seconds_passed;
 }
 
 //dash if not dashing and has double clicked
-if ((key_rightPressed || key_leftPressed) &amp;&amp; dash &amp;&amp; !dashing &amp;&amp; !dashed)
+if ((moving != 0) &amp;&amp; dash &amp;&amp; !dashing &amp;&amp; !dashed)
 {
     dash = 0;
     alarm[0] = 0;
     
     dashing = 1;
     alarm[1] = timeDashDuration;
-    hsp = (key_rightPressed - key_leftPressed) * movespeed * dashMultiplier * seconds_passed;
+    hsp = moving * movespeed * dashMultiplier * seconds_passed;
 
     dashed = 1;
     alarm[2] = timeDashCooldown;
 }
 
 //React to gate opening
-if (key_rightPressed || key_leftPressed)
+if (moving != 0)
 {
     dash = 1;
     alarm[0] = timeDoublePress;
@@ -184,16 +188,16 @@ if (key_rightPressed || key_leftPressed)
 //gravity is framerate dependent SO FIX THAT SHIT
 if (vsp &lt; maxVspeed)
 {
-    vsp += grav * seconds_passed;
+    vsp += (grav * seconds_passed);
 }
 
 //if on ground, then allow jumping
 //fix this puppy up and interferes with gravity
 var groundID = instance_place(x, y+1, all);
 
-if(groundID != noone &amp;&amp; groundID.collision)
+if(groundID != noone &amp;&amp; groundID.collision != undefined &amp;&amp; groundID.collision)
 {
-    vsp = key_jump * -jumpspeed * seconds_passed;
+    vsp = key_jump * -jumpspeed / seconds_passed;
 }
 
 //tidy this up get
@@ -215,13 +219,14 @@ var instanceIDx = instance_place(x+hsp, y, all);
 
 if(instanceIDx != noone)
 {
-    var collisionIndexx = instanceIDx.object_index;
     //note checks id instead of index
     //look at creation code and bring bring money shot timeo
-    if(instanceIDx.collision)
-        {
+    //might fuck up here
+    if(instanceIDx.collision != undefined &amp;&amp; instanceIDx.collision)
+    {
         //move the character right next to the wall
-        while(!place_meeting(x+sign(hsp),y,collisionIndexx))
+        //var collisionIndexx = instanceIDx.object_index;
+        while(!place_meeting(x+sign(hsp) ,y ,instanceIDx))
         {
             x += sign(hsp);
         }
@@ -233,15 +238,34 @@ var instanceIDy = instance_place(x, y+vsp, all);
 
 if(instanceIDy != noone)
 {   
-    var collisionIndexy = instanceIDy.object_index;
-    if(instanceIDy.collision)
+    if(instanceIDy.collision != undefined &amp;&amp; instanceIDy.collision)
     {
         //move the character right next to the wall
-        while(!place_meeting(x,y+sign(vsp),collisionIndexy))
+        //var collisionIndexy = instanceIDy.object_index;
+        while(!place_meeting(x, y+sign(vsp), instanceIDy))
         {
             y += sign(vsp);
         }
         //once player is flush, stop em from trying to go further, gravity then takes over
+        vsp = 0;
+    }
+}
+
+var instanceIDz = instance_place(x+hsp, y+vsp, all);
+
+if(instanceIDz != noone)
+{   
+    if(instanceIDz.collision != undefined &amp;&amp; instanceIDz.collision)
+    {
+        //move the character right next to the wall
+        //var collisionIndexy = instanceIDy.object_index;
+        while(!place_meeting(x+sign(hsp), y+sign(vsp), instanceIDz))
+        {
+            x += sign(hsp);
+            y += sign(vsp);
+        }
+        //once player is flush, stop em from trying to go further, gravity then takes over
+        hsp = 0;
         vsp = 0;
     }
 }
