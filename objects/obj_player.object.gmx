@@ -25,14 +25,14 @@
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>grav = 100;
+            <string>grav = 400;
 hsp = 0;
 vsp = 0;
 
-maxVspeed = 20;
+maxVspeed = 1000;
 
 //gotta fix jump speed
-jumpspeed = 2;
+jumpspeed = 500;
 movespeed = 200;
 
 dash = 0;
@@ -157,6 +157,10 @@ key_jump = keyboard_check_pressed(vk_space);
 var seconds_passed = delta_time/1000000
 var move = key_right - key_left;
 var moving = key_rightPressed - key_leftPressed;
+
+//match animation with speed
+image_speed = 50 * seconds_passed;
+
 //if not in a dash then move normally
 if(!dashing)
 {
@@ -185,19 +189,18 @@ if (moving != 0)
 }
 
 //Keep adding gravity until it over powers you and brings you down
-//gravity is framerate dependent SO FIX THAT SHIT
 if (vsp &lt; maxVspeed)
 {
-    vsp += (grav * seconds_passed);
+    vsp += grav * seconds_passed / 2;
 }
 
 //if on ground, then allow jumping
-//fix this puppy up and interferes with gravity
+//fix this puppy up and remove dependancy on frames
 var groundID = instance_place(x, y+1, all);
 
 if(groundID != noone &amp;&amp; groundID.collision != undefined &amp;&amp; groundID.collision)
 {
-    vsp = key_jump * -jumpspeed / seconds_passed;
+    vsp = key_jump * -jumpspeed;
 }
 
 //tidy this up get
@@ -221,7 +224,7 @@ if(instanceIDx != noone)
 {
     //note checks id instead of index
     //look at creation code and bring bring money shot timeo
-    //might fuck up here
+    //might fuck up here because of undefined. if it fails then use: if (is_undefined(instanceIDx))
     if(instanceIDx.collision != undefined &amp;&amp; instanceIDx.collision)
     {
         //move the character right next to the wall
@@ -282,8 +285,14 @@ if (place_meeting(x,y+vsp,obj_wall))
 //show_debug_message(delta_time);
 
 x += hsp;
-y += vsp;
+y += vsp * seconds_passed;
 
+//Fixed gravity
+//http://web.archive.org/web/20161201054257/https://www.niksula.hut.fi/~hkankaan/Homepages/gravity.html
+if (vsp &lt; maxVspeed)
+{
+    vsp += grav * seconds_passed / 2;
+}
 //view_xview += (x - view_xview)/5;
 //view_yview += (y - view_yview)/8;
 
